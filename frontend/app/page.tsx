@@ -14,7 +14,7 @@ import BotIcon from "@mui/icons-material/SmartToy";
 
 export default function ChatBotUI() {
   const [messages, setMessages] = useState([
-    { id: 1, text: "Hello", role: "bot" },
+    { id: 1, text: "Hello", role: "assistant" },
   ]);
   const [inputValue, setInputValue] = useState("");
 
