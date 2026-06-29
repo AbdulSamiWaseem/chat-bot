@@ -11,16 +11,27 @@ import {
 import SendIcon from "@mui/icons-material/Send";
 import PersonIcon from "@mui/icons-material/Person";
 import BotIcon from "@mui/icons-material/SmartToy";
+import { useChatMutation, ChatMessage } from "./services/mutations";
 
 export default function ChatBotUI() {
-  const [messages, setMessages] = useState([
-    { id: 1, text: "Hello", role: "bot" },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
+  const chatMutation = useChatMutation();
 
   const handleSend = () => {
-    console.log(inputValue);
-    setMessages([...messages, { id: messages.length + 1, text: inputValue, role: "user" }]);
+    if (!inputValue.trim() || chatMutation.isPending) return;
+
+    const newMessages = [...messages, { content: inputValue, role: "user" }];
+    setMessages(newMessages);
+
+    chatMutation.mutate(newMessages, {
+      onSuccess: (data) => {
+        setMessages((prev) => [
+          ...prev,
+          { content: data.data.content, role: "assistant" }
+        ]);
+      }
+    });
     setInputValue("");
   };
 
@@ -31,13 +42,13 @@ export default function ChatBotUI() {
       </Box>
       <Box sx={{ display: "flex", flexDirection: "column", width: "100%", minHeight: "100vh", justifyContent: "space-between" }}>
         <Box sx={{ p: 3, display: "flex", flexDirection: "column", gap: 2, width: "100%" }}>
-          {messages.map((msg) => (
+          {messages.map((msg, index) => (
             <Box
-              key={msg.id}
+              key={index}
               sx={{ display: "flex", gap: 2, alignItems: "center", bgcolor: "#f2f2f2", p: 2, borderRadius: "10px" }}
             >
               {msg.role === "user" ? <PersonIcon fontSize="small" /> : <BotIcon fontSize="small" />}
-              <Typography>{msg.text}</Typography>
+              <Typography>{msg.content}</Typography>
             </Box>
           ))}
         </Box>
