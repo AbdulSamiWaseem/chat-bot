@@ -7,6 +7,7 @@ import {
   TextField,
   IconButton,
   Paper,
+  CircularProgress,
 } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 import PersonIcon from "@mui/icons-material/Person";
@@ -62,8 +63,11 @@ export default function ChatBotUI() {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
             />
-            <IconButton color="primary" onClick={handleSend}>
-              <SendIcon />
+            <IconButton color="primary" onClick={handleSend} disabled={chatMutation.isPending}>
+              {chatMutation.isPending
+                ? <CircularProgress size={24} />
+                : <SendIcon />
+              }
             </IconButton>
           </Paper>
         </Box>
