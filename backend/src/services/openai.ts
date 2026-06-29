@@ -31,7 +31,7 @@ export const chatService = async (body: any, RESP: ResponseObject) => {
     return {
       ...RESP,
       error: true,
-      error_message: "OpenAI failed",
+      error_message: "Message Failed Retry!",
     };
   }
 };
