@@ -11,7 +11,7 @@ export const chatService = async (body: any, RESP: ResponseObject) => {
     const { messages } = body;
 
     const response = await openai.responses.create({
-      model: "gpt-5.5",
+      model: "gpt-5.4-mini",
       reasoning: { effort: "low" },
       instructions: "Talk like a ai assistant chatbot",
       input: messages,
