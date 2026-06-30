@@ -1,7 +1,7 @@
 import { Box, Paper, TextField, IconButton } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 
-export default function ChatInput({ inputValue, setInputValue, onSend }: { inputValue: any, setInputValue: any, onSend: any }) {
+export default function ChatInput({ inputValue, setInputValue, onSend }: { inputValue: string, setInputValue: any, onSend: any }) {
   return (
     <Box sx={{ p: 2 }}>
       <Paper sx={{ display: "flex", alignItems: "center", p: 1, border: "1px solid gray" }}>
