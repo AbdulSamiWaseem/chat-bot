@@ -4,12 +4,13 @@ import { validateChat } from "../validation/chat";
 import { handleResponse } from "../utils/responseHandler";
 
 export const chat = async (req: Request, res: Response) => {
+  res.setHeader('Transfer-Encoding', 'chunked');
   await handleResponse(
     {
       handler: chatService,
       validationFn: validateChat,
       handlerParams: [req.body],
-      successMessage: "Chat response generated.",
+      isStream: true,
     },
     req,
     res
