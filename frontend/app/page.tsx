@@ -13,7 +13,6 @@ export default function ChatBotUI() {
   const [inputValue, setInputValue] = useState("");
 
   const handleSend = () => {
-    console.log(inputValue);
     setMessages([...messages, { id: messages.length + 1, text: inputValue, role: "user" }]);
     setInputValue("");
   };
