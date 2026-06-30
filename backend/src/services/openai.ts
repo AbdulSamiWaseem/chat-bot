@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import "dotenv/config";
-import { ResponseObject } from "../utils/constants";
+import { ResponseObject, SYSTEM_PROMPT } from "../utils/constants";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -11,13 +11,12 @@ export const chatService = async (body: any, RESP: ResponseObject) => {
     const { messages } = body;
 
     const response = await openai.responses.create({
-      model: "gpt-5.4-mini",
+      model: process.env.OPENAI_MODEL || "gpt-5.4-mini",
       reasoning: { effort: "low" },
-      instructions: "Talk like a ai assistant chatbot",
+      instructions: SYSTEM_PROMPT,
       input: messages,
       max_output_tokens: 500,
     });
-    console.log("response>>>>>>", response);
 
     return {
       ...RESP,

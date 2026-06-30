@@ -12,7 +12,6 @@ export const useChatMutation = () => {
     mutationFn: (payload: ChatMessage[]) =>
       postApi("chat", { messages: payload }),
     onError: (error: any) => {
-      console.log(error)
       toast.error(error.response?.data?.message || "An error occurred.");
     },
   });

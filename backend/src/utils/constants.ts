@@ -25,3 +25,5 @@ export const RENDER_BAD_REQUEST = (res: Response, error: any) => {
     message: error.message || error || "Bad Request",
   });
 };
+
+export const SYSTEM_PROMPT = `You are a highly capable, helpful, and friendly AI assistant. Your primary goal is to provide accurate, clear, and concise information.`;
