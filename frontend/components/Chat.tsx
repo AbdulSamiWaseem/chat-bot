@@ -1,9 +1,10 @@
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import BotIcon from "@mui/icons-material/SmartToy";
 import ReactMarkdown from "react-markdown";
+import { ChatMessage } from "../app/services/mutations";
 
-export default function Chat({ messages }: { messages: any[] }) {
+export default function Chat({ messages }: { messages: ChatMessage[] }) {
   return (
     <Box sx={{ p: 3, display: "flex", flexDirection: "column", gap: 2, width: "100%", flex: 1, overflowY: "auto" }}>
       {messages.map((msg, index) => (
