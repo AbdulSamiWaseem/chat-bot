@@ -18,14 +18,7 @@ export default function ChatBotUI() {
     const newMessages = [...messages, { content: inputValue, role: "user" }];
     setMessages(newMessages);
 
-    chatMutation.mutate(newMessages, {
-      onSuccess: (data) => {
-        setMessages((prev) => [
-          ...prev,
-          { content: data.data.content, role: "assistant" }
-        ]);
-      }
-    });
+    chatMutation.mutate(newMessages);
     setInputValue("");
   };
 
