@@ -20,10 +20,7 @@ export const chatService = async (body: any, res: Response) => {
     });
 
     for await (const chunk of response) {
-      console.log("chunk>>>> ", chunk);
-
       if (chunk.type === "response.output_text.delta") {
-        console.log("chunk.delta>>>> ", chunk.delta);
         res.write(`${JSON.stringify({ text: chunk.delta })}\n`);
       }
     }
