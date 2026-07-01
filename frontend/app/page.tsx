@@ -42,6 +42,7 @@ export default function ChatBotUI() {
           inputValue={inputValue}
           setInputValue={setInputValue}
           onSend={handleSend}
+          isPending={chatMutation.isPending}
         />
       </Box>
     </Box>
