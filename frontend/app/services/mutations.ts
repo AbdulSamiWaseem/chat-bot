@@ -10,7 +10,7 @@ export interface ChatMessage {
 
 export const useChatMutation = () => {
   return useMutation({
-    mutationFn: async (payload: ChatMessage[]) => {
+    mutationFn: async ({ payload, onChunk }: { payload: ChatMessage[]; onChunk: any }) => {
       const stream = await postApi("chat",
         { messages: payload },
         {
@@ -48,7 +48,9 @@ export const useChatMutation = () => {
           }
         });
 
-        console.log("buffer", buffer);
+        if (buffer) {
+          onChunk(buffer);
+        }
       }
     },
     onError: (error: any) => {

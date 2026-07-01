@@ -18,8 +18,19 @@ export default function ChatBotUI() {
     const newMessages = [...messages, { content: inputValue, role: "user" }];
     setMessages(newMessages);
 
-    chatMutation.mutate(newMessages);
-    setInputValue("");
+    setInputValue("")
+    setMessages((prev) => [...prev, { content: "", role: "assistant" }]);
+    chatMutation.mutate({
+      payload: newMessages,
+      onChunk: (text: any) => {
+        setMessages((prev) => {
+          const updated = [...prev];
+          const lastIndex = updated.length - 1;
+          updated[lastIndex] = { ...updated[lastIndex], content: updated[lastIndex].content + text };
+          return updated;
+        });
+      }
+    });
   };
 
   return (
