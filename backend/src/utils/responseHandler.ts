@@ -3,7 +3,7 @@ import { createResponseObject, RENDER_BAD_REQUEST } from "./constants";
 
 export const handleResponse = async (options: any, req: Request, res: Response) => {
   try {
-    const { handler, validationFn, handlerParams, successMessage } = options;
+    const { handler, validationFn, handlerParams, successMessage, isStream } = options;
 
     if (validationFn) {
       try {
@@ -15,6 +15,11 @@ export const handleResponse = async (options: any, req: Request, res: Response) 
           message: e.details[0].message.replace(/\"/g, ""),
         });
       }
+    }
+
+    if (isStream) {
+      await handler(...handlerParams, res);
+      return;
     }
 
     const RESP = createResponseObject();
