@@ -18,15 +18,19 @@ export default function ChatBotUI() {
     const newMessages = [...messages, { content: inputValue, role: "user" }];
     setMessages(newMessages);
 
-    chatMutation.mutate(newMessages, {
-      onSuccess: (data) => {
-        setMessages((prev) => [
-          ...prev,
-          { content: data.data.content, role: "assistant" }
-        ]);
+    setInputValue("")
+    setMessages((prev) => [...prev, { content: "", role: "assistant" }]);
+    chatMutation.mutate({
+      payload: newMessages,
+      onChunk: (text: any) => {
+        setMessages((prev) => {
+          const updated = [...prev];
+          const lastIndex = updated.length - 1;
+          updated[lastIndex] = { ...updated[lastIndex], content: updated[lastIndex].content + text };
+          return updated;
+        });
       }
     });
-    setInputValue("");
   };
 
   return (
@@ -38,6 +42,7 @@ export default function ChatBotUI() {
           inputValue={inputValue}
           setInputValue={setInputValue}
           onSend={handleSend}
+          isPending={chatMutation.isPending}
         />
       </Box>
     </Box>
