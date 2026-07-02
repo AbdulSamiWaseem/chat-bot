@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { authClient } from "./auth-client";
 
 export const useAuth = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
 
   const signIn = async (data: any) => {
     await authClient.signIn.email(
@@ -23,7 +24,7 @@ export const useAuth = () => {
             localStorage.setItem("user", JSON.stringify(ctx.data));
           }
           toast.success("Successfully logged in");
-          redirect("/");
+          router.push("/");
         },
         onError: (ctx) => {
           toast.error(ctx.error.message || "Sign in failed");
@@ -49,7 +50,7 @@ export const useAuth = () => {
             localStorage.setItem("user", JSON.stringify(ctx.data));
           }
           toast.success("Successfully registered");
-          redirect("/");
+          router.push("/");
         },
         onError: (ctx) => {
           toast.error(ctx.error.message || "Sign up failed");
@@ -63,7 +64,7 @@ export const useAuth = () => {
     await authClient.signOut();
     localStorage.removeItem("user");
     toast.success("Successfully logged out.");
-    redirect("/login");
+    router.push("/login");
   };
 
   return {
