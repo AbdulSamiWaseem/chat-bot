@@ -5,15 +5,27 @@ import { Box } from "@mui/material";
 import Sidebar from "../components/Sidebar";
 import Chat from "../components/Chat";
 import ChatInput from "../components/ChatInput";
+import { useChatMutation, ChatMessage } from "./services/mutations";
 
 export default function ChatBotUI() {
-  const [messages, setMessages] = useState<any[]>([
-    { id: 1, text: "Hello", role: "assistant" },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
+  const chatMutation = useChatMutation();
 
   const handleSend = () => {
-    setMessages([...messages, { id: messages.length + 1, text: inputValue, role: "user" }]);
+    if (!inputValue.trim() || chatMutation.isPending) return;
+
+    const newMessages = [...messages, { content: inputValue, role: "user" }];
+    setMessages(newMessages);
+
+    chatMutation.mutate(newMessages, {
+      onSuccess: (data) => {
+        setMessages((prev) => [
+          ...prev,
+          { content: data.data.content, role: "assistant" }
+        ]);
+      }
+    });
     setInputValue("");
   };
 
