@@ -1,16 +1,36 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Box } from "@mui/material";
 import Sidebar from "../components/Sidebar";
 import Chat from "../components/Chat";
 import ChatInput from "../components/ChatInput";
 import { useChatMutation, ChatMessage } from "./services/mutations";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { useChatData } from "./services/queries";
+import { authClient } from "./services/auth-client";
 
 export default function ChatBotUI() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
   const chatMutation = useChatMutation();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const chatId = searchParams.get("chatId");
+  const { data: session } = authClient.useSession();
+  const userId = session?.user?.id;
+
+  const { data: chatData } = useChatData(chatId);
+
+  useEffect(() => {
+    if (chatData?.chats) {
+      setMessages(chatData.chats);
+    } else if (!chatId) {
+      setMessages([]);
+    }
+  }, [chatData, chatId]);
 
   const handleSend = () => {
     if (!inputValue.trim() || chatMutation.isPending) return;
@@ -22,6 +42,8 @@ export default function ChatBotUI() {
     setMessages((prev) => [...prev, { content: "", role: "assistant" }]);
     chatMutation.mutate({
       payload: newMessages,
+      chatId,
+      userId,
       onChunk: (text: any) => {
         setMessages((prev) => {
           const updated = [...prev];
@@ -29,6 +51,12 @@ export default function ChatBotUI() {
           updated[lastIndex] = { ...updated[lastIndex], content: updated[lastIndex].content + text };
           return updated;
         });
+      },
+      onComplete: (chat_id: string) => {
+        if (!chatId) {
+          router.push(`/?chatId=${chat_id}`);
+          queryClient.invalidateQueries({ queryKey: ["chatHistory"] });
+        }
       }
     });
   };

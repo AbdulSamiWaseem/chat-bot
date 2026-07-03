@@ -7,3 +7,11 @@ export const useChatHistory = (userId?: string) => {
     queryFn: () => getApi(`chat/history?userId=${userId}`),
   });
 };
+
+export const useChatData = (chatId?: any) => {
+  return useQuery({
+    queryKey: ["chat", chatId],
+    queryFn: () => getApi(`chat/${chatId}`),
+    enabled: !!chatId,
+  });
+};
