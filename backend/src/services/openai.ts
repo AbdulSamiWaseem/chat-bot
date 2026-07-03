@@ -58,10 +58,63 @@ export const chatService = async (body: any, res: Response) => {
   }
 };
 
-export const getChatHistory = async (params: any) => {
-  const { userId } = params;
-  if (!userId)
-    return { error: true, error_message: "Missing userId" };
-  const chats = await getChatHistoryByUserId(userId);
-  return { data: chats, auth: true };
+export const getChatHistory = async (params: any, resp: ResponseObject) => {
+  try {
+    const { userId } = params;
+
+    if (!userId) {
+      return {
+        error: true,
+        error_message: "User ID is required",
+      };
+    }
+
+    const chats = await getChatHistoryByUserId(userId);
+
+    return {
+      ...resp,
+      success_message: "Chat history fetched successfully",
+      data: chats,
+    };
+  } catch (error: any) {
+    console.error("Error:", error);
+    return {
+      error: true,
+      error_message: error.message || "Failed to get chat history",
+    };
+  }
+};
+
+export const getChatById = async (params: any, resp: ResponseObject) => {
+  try {
+    const { chatId } = params;
+
+    if (!chatId) {
+      return {
+        error: true,
+        error_message: "Chat ID is required",
+      };
+    }
+
+    const chat = await getChat(chatId);
+
+    if (!chat) {
+      return {
+        error: true,
+        error_message: "Chat not found",
+      };
+    }
+
+    return {
+      ...resp,
+      success_message: "Chat fetched successfully",
+      data: chat,
+    };
+  } catch (error: any) {
+    console.error("Error:", error);
+    return {
+      error: true,
+      error_message: error.message || "Failed to get chat",
+    };
+  }
 };
