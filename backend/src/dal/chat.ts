@@ -1,8 +1,8 @@
 import prisma from "./prisma";
 
-export const getChatByIdAndUser = async (chatId: string, userId: string) => {
+export const getChat = async (chatId: string) => {
   return prisma.chat.findUnique({
-    where: { id: chatId, userId },
+    where: { id: chatId },
   });
 };
 
@@ -20,6 +20,14 @@ export const updateChatMessages = async (chatId: string, updatedChats: any[]) =>
   return prisma.chat.update({
     where: { id: chatId },
     data: { chats: updatedChats },
+  });
+};
+
+export const getChatHistoryByUserId = async (userId: string) => {
+  return prisma.chat.findMany({
+    where: { userId },
+    orderBy: { updatedAt: 'desc' },
+    select: { id: true, chatName: true, updatedAt: true },
   });
 };
 

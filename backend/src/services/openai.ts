@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import "dotenv/config";
 import { ResponseObject, SYSTEM_PROMPT } from "../utils/constants";
 import { Response } from "express";
-import { getChatByIdAndUser, createNewChat, updateChatMessages } from "../dal/chat";
+import { getChat, createNewChat, updateChatMessages, getChatHistoryByUserId } from "../dal/chat";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -15,7 +15,7 @@ export const chatService = async (body: any, res: Response) => {
 
     let chat;
     if (userId && chatId) {
-      chat = await getChatByIdAndUser(chatId, userId);
+      chat = await getChat(chatId);
       if (!chat) {
         res.write(`${JSON.stringify({ error: "Chat not found" })}\n`);
         res.end();
@@ -56,4 +56,12 @@ export const chatService = async (body: any, res: Response) => {
     res.write(`${JSON.stringify({ error: "Message Failed Retry!" })}\n`);
     res.end();
   }
+};
+
+export const getChatHistory = async (params: any) => {
+  const { userId } = params;
+  if (!userId)
+    return { error: true, error_message: "Missing userId" };
+  const chats = await getChatHistoryByUserId(userId);
+  return { data: chats, auth: true };
 };
