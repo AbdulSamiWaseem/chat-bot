@@ -6,9 +6,9 @@ export const getApi = async (route: string) => {
   return res.data.data;
 };
 
-export const postApi = async (route: string, payload: any) => {
+export const postApi = async (route: string, payload: any, config?: any) => {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-  const res = await axios.post(`${baseUrl}${route}`, payload);
+  const res = await axios.post(`${baseUrl}${route}`, payload, config);
   return res.data;
 };
 
