@@ -20,9 +20,6 @@ export const useAuth = () => {
           setIsSubmitting(true);
         },
         onSuccess: (ctx) => {
-          if (ctx.data) {
-            localStorage.setItem("user", JSON.stringify(ctx.data));
-          }
           toast.success("Successfully logged in");
           router.push("/");
         },
@@ -46,9 +43,6 @@ export const useAuth = () => {
           setIsSubmitting(true);
         },
         onSuccess: (ctx) => {
-          if (ctx.data) {
-            localStorage.setItem("user", JSON.stringify(ctx.data));
-          }
           toast.success("Successfully registered");
           router.push("/");
         },
@@ -62,7 +56,6 @@ export const useAuth = () => {
 
   const signOut = async () => {
     await authClient.signOut();
-    localStorage.removeItem("user");
     toast.success("Successfully logged out.");
     router.push("/login");
   };

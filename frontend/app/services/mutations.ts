@@ -26,12 +26,15 @@ export const useChatMutation = () => {
       );
       const reader = stream.getReader();
       const decoder = new TextDecoder();
+      let lineBuffer = "";
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split("\n");
+        lineBuffer += decoder.decode(value, { stream: true });
+        const lines = lineBuffer.split("\n");
+        lineBuffer = lines.pop() || "";
+
         let buffer = "";
         let chatId = null;
         lines.forEach((line) => {
