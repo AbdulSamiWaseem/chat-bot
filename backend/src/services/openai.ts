@@ -4,6 +4,7 @@ import { ResponseObject, SYSTEM_PROMPT } from "../utils/constants";
 import { Response } from "express";
 import { getChat, createNewChat, updateChatMessages, getChatHistoryByUserId } from "../dal/chat";
 import { fetchWeather } from "./weather";
+import { fetchLocation } from "./location";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -20,6 +21,18 @@ const tools = [
         location: { type: "string" },
       },
       required: ["location"],
+    },
+  },
+  {
+    type: "function",
+    name: "get_location",
+    description: "Get address details of a specified place, or address query.",
+    parameters: {
+      type: "object",
+      properties: {
+        query: { type: "string" },
+      },
+      required: ["query"],
     },
   },
 ];
@@ -68,15 +81,26 @@ export const chatService = async (body: any, res: Response) => {
     }
 
     if (detectedTool) {
-      const { location } = JSON.parse(detectedTool.arguments);
-      const weatherData = await fetchWeather(location);
+      let toolOutput = "";
+      const args = JSON.parse(detectedTool.arguments);
+
+      if (detectedTool.name === "get_weather") {
+        const { location } = args;
+        const weatherData = await fetchWeather(location);
+        toolOutput = weatherData ? JSON.stringify(weatherData) : `Could not get weather details for "${location}".`;
+      } else if (detectedTool.name === "get_location") {
+        const { query } = args;
+        const locationData = await fetchLocation(query);
+        toolOutput = locationData ? JSON.stringify(locationData) : `Could not get location for "${query}".`;
+      }
+
       const input = [
         ...messages,
         detectedTool,
         {
           type: "function_call_output",
           call_id: detectedTool.call_id,
-          output: weatherData ? JSON.stringify(weatherData) : `Could not get weather details for "${location}".`,
+          output: toolOutput,
         },
       ];
 
