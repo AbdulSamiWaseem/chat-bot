@@ -37,6 +37,15 @@ const tools = [
   },
 ];
 
+const callFunction = async (name, args) => {
+  if (name === "get_weather") {
+    return await fetchWeather(args.location);
+  }
+  if (name === "get_location") {
+    return await fetchLocation(args.query);
+  }
+};
+
 export const chatService = async (body: any, res: Response) => {
   try {
     const { messages, userId } = body;
@@ -65,42 +74,36 @@ export const chatService = async (body: any, res: Response) => {
     });
 
     let assistantResponse = "";
-    let detectedTool = null;
+    const toolCalls = [];
 
     for await (const chunk of response) {
       if (chunk.type === "response.output_text.delta") {
         assistantResponse += chunk.delta;
         res.write(`${JSON.stringify({ text: chunk.delta })}\n`);
-      } else if (
-        chunk.type === "response.output_item.done" &&
-        chunk.item?.type === "function_call"
-      ) {
-        detectedTool = chunk.item;
+      } else if (chunk.type === "response.output_item.done" && chunk.item?.type === "function_call") {
+        toolCalls.push(chunk.item);
       }
     }
 
-    if (detectedTool) {
-      let toolOutput = "";
-      const args = JSON.parse(detectedTool.arguments);
+    if (toolCalls.length > 0) {
+      const toolOutputs = [];
 
-      if (detectedTool.name === "get_weather") {
-        const { location } = args;
-        const weatherData = await fetchWeather(location);
-        toolOutput = weatherData ? JSON.stringify(weatherData) : `Could not get weather details for "${location}".`;
-      } else if (detectedTool.name === "get_location") {
-        const { query } = args;
-        const locationData = await fetchLocation(query);
-        toolOutput = locationData ? JSON.stringify(locationData) : `Could not get location for "${query}".`;
+      for (const toolCall of toolCalls) {
+        const name = toolCall.name;
+        const args = JSON.parse(toolCall.arguments);
+        const result = await callFunction(name, args);
+
+        toolOutputs.push({
+          type: "function_call_output",
+          call_id: toolCall.call_id,
+          output: result ? JSON.stringify(result) : "Unavailable",
+        });
       }
 
       const input = [
         ...messages,
-        detectedTool,
-        {
-          type: "function_call_output",
-          call_id: detectedTool.call_id,
-          output: toolOutput,
-        },
+        ...toolCalls,
+        ...toolOutputs,
       ];
 
       const responseStream = await openai.responses.create({
