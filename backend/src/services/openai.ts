@@ -5,6 +5,12 @@ import { Response } from "express";
 import { getChat, createNewChat, updateChatMessages, getChatHistoryByUserId } from "../dal/chat";
 import { fetchWeather } from "./weather";
 import { fetchLocation } from "./location";
+import {
+  addAppointment,
+  getAppointments,
+  updateAppointment,
+  cancelAppointment,
+} from "./appointment";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -35,14 +41,81 @@ const tools = [
       required: ["query"],
     },
   },
+  {
+    type: "function",
+    name: "create_appointment",
+    description: "Create a new appointment for the user.",
+    parameters: {
+      type: "object",
+      properties: {
+        purpose: { type: "string" },
+        startTime: { type: "string", description: "format 2026-07-08T15:00:00" },
+        endTime: { type: "string", description: "format 2026-07-08T16:00:00" },
+      },
+      required: ["purpose", "startTime", "endTime"],
+    },
+  },
+  {
+    type: "function",
+    name: "get_appointments",
+    description: "Get all upcoming appointments for the user.",
+    parameters: {
+      type: "object",
+      properties: {},
+      required: [],
+    },
+  },
+  {
+    type: "function",
+    name: "update_appointment",
+    description: "Update an existing appointment.",
+    parameters: {
+      type: "object",
+      properties: {
+        id: { type: "number" },
+        purpose: { type: "string" },
+        startTime: { type: "string", description: "format 2026-07-08T15:00:00" },
+        endTime: { type: "string", description: "format 2026-07-08T16:00:00" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    type: "function",
+    name: "cancel_appointment",
+    description: "Cancel an appointment.",
+    parameters: {
+      type: "object",
+      properties: {
+        id: { type: "number" },
+      },
+      required: ["id"],
+    },
+  },
 ];
 
-const callFunction = async (name, args) => {
+const callFunction = async (name, args, userId) => {
   if (name === "get_weather") {
     return await fetchWeather(args.location);
   }
   if (name === "get_location") {
     return await fetchLocation(args.query);
+  }
+  if (name === "create_appointment") {
+    return await addAppointment(userId, args.purpose, args.startTime, args.endTime);
+  }
+  if (name === "get_appointments") {
+    return await getAppointments(userId);
+  }
+  if (name === "update_appointment") {
+    return await updateAppointment(args.id, userId, {
+      purpose: args.purpose,
+      startTime: args.startTime,
+      endTime: args.endTime,
+    });
+  }
+  if (name === "cancel_appointment") {
+    return await cancelAppointment(args.id, userId);
   }
 };
 
@@ -91,7 +164,7 @@ export const chatService = async (body: any, res: Response) => {
       for (const toolCall of toolCalls) {
         const name = toolCall.name;
         const args = JSON.parse(toolCall.arguments);
-        const result = await callFunction(name, args);
+        const result = await callFunction(name, args, userId);
 
         toolOutputs.push({
           type: "function_call_output",
@@ -109,7 +182,6 @@ export const chatService = async (body: any, res: Response) => {
       const responseStream = await openai.responses.create({
         model: process.env.OPENAI_MODEL || "gpt-4o-mini",
         instructions: SYSTEM_PROMPT,
-        reasoning: { effort: "low" },
         input,
         stream: true,
       });
