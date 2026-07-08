@@ -24,9 +24,9 @@ export const addAppointment = async (
     return { error: true, error_message: "End time must be after start time." };
   }
 
-  const overlap = await checkOverlap(userId, start, end);
+  const overlap = await checkOverlap(start, end);
   if (overlap) {
-    return { error: true, error_message: "You already have an appointment at this time." };
+    return { error: true, error_message: "This slot is already booked." };
   }
 
   const appointment = await createAppointment(userId, purpose, start, end);
@@ -80,9 +80,9 @@ export const updateAppointment = async (
   }
 
   if (data.startTime || data.endTime) {
-    const overlap = await checkOverlap(userId, newStart, newEnd, id);
+    const overlap = await checkOverlap(newStart, newEnd, id);
     if (overlap) {
-      return { error: true, error_message: "You already have an appointment at this time." };
+      return { error: true, error_message: "This slot is already booked." };
     }
   }
 

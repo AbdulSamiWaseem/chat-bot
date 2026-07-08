@@ -34,14 +34,12 @@ export const deleteAppointmentById = async (id: number) => {
 };
 
 export const checkOverlap = async (
-  userId: string,
   startTime: Date,
   endTime: Date,
   excludeId?: number
 ) => {
   return prisma.appointment.findFirst({
     where: {
-      userId,
       startTime: { lt: endTime },
       endTime: { gt: startTime },
       id: { not: excludeId },
