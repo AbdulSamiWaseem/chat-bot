@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Box } from "@mui/material";
 import Sidebar from "../components/Sidebar";
 import Chat from "../components/Chat";
@@ -24,22 +24,15 @@ export default function ChatBotUI() {
 
   const { data: chatData } = useChatData(chatId);
 
-  useEffect(() => {
-    if (chatData?.chats) {
-      setMessages(chatData.chats);
-    } else if (!chatId) {
-      setMessages([]);
-    }
-  }, [chatData, chatId]);
+  const savedMessages = chatData?.chats || [];
+  const displayMessages = messages.length > 0 ? messages : savedMessages;
 
   const handleSend = () => {
     if (!inputValue.trim() || chatMutation.isPending) return;
 
-    const newMessages = [...messages, { content: inputValue, role: "user" }];
-    setMessages(newMessages);
-
+    const newMessages = [...savedMessages, { content: inputValue, role: "user" }];
+    setMessages([...newMessages, { content: "", role: "assistant" }]);
     setInputValue("")
-    setMessages((prev) => [...prev, { content: "", role: "assistant" }]);
     chatMutation.mutate({
       payload: newMessages,
       chatId,
@@ -53,6 +46,8 @@ export default function ChatBotUI() {
         });
       },
       onComplete: (chat_id: string) => {
+        setMessages([]);
+        queryClient.invalidateQueries({ queryKey: ["chat", chat_id] });
         if (!chatId) {
           router.push(`/?chatId=${chat_id}`);
           queryClient.invalidateQueries({ queryKey: ["chatHistory"] });
@@ -65,7 +60,7 @@ export default function ChatBotUI() {
     <Box sx={{ display: "flex", height: "100vh", overflow: "hidden" }}>
       <Sidebar />
       <Box sx={{ display: "flex", flexDirection: "column", width: "100%", height: "100vh", justifyContent: "space-between" }}>
-        <Chat messages={messages} />
+        <Chat messages={displayMessages} />
         <ChatInput
           inputValue={inputValue}
           setInputValue={setInputValue}
