@@ -138,27 +138,33 @@ export const chatService = async (body: any, res: Response) => {
       chatId = chat.id;
     }
 
-    const response = await openai.responses.create({
-      model: process.env.OPENAI_MODEL || "gpt-5.4-mini",
-      instructions: SYSTEM_PROMPT,
-      input: messages,
-      tools: tools,
-      stream: true,
-    });
-
     let assistantResponse = "";
-    const toolCalls = [];
+    let currentInput = [...messages];
 
-    for await (const chunk of response) {
-      if (chunk.type === "response.output_text.delta") {
-        assistantResponse += chunk.delta;
-        res.write(`${JSON.stringify({ text: chunk.delta })}\n`);
-      } else if (chunk.type === "response.output_item.done" && chunk.item?.type === "function_call") {
-        toolCalls.push(chunk.item);
+    while (true) {
+      const response = await openai.responses.create({
+        model: process.env.OPENAI_MODEL || "gpt-5.4-mini",
+        instructions: SYSTEM_PROMPT,
+        input: currentInput,
+        tools: tools,
+        stream: true,
+      });
+
+      const toolCalls = [];
+
+      for await (const chunk of response) {
+        if (chunk.type === "response.output_text.delta") {
+          assistantResponse += chunk.delta;
+          res.write(`${JSON.stringify({ text: chunk.delta })}\n`);
+        } else if (chunk.type === "response.output_item.done" && chunk.item?.type === "function_call") {
+          toolCalls.push(chunk.item);
+        }
       }
-    }
 
-    if (toolCalls.length > 0) {
+      if (toolCalls.length === 0) {
+        break;
+      }
+
       const toolOutputs = [];
 
       for (const toolCall of toolCalls) {
@@ -173,26 +179,11 @@ export const chatService = async (body: any, res: Response) => {
         });
       }
 
-      const input = [
-        ...messages,
+      currentInput = [
+        ...currentInput,
         ...toolCalls,
         ...toolOutputs,
       ];
-
-      const responseStream = await openai.responses.create({
-        model: process.env.OPENAI_MODEL || "gpt-4o-mini",
-        instructions: SYSTEM_PROMPT,
-        input,
-        stream: true,
-      });
-
-      assistantResponse = "";
-      for await (const chunk of responseStream) {
-        if (chunk.type === "response.output_text.delta") {
-          assistantResponse += chunk.delta;
-          res.write(`${JSON.stringify({ text: chunk.delta })}\n`);
-        }
-      }
     }
 
     if (userId && chatId) {
