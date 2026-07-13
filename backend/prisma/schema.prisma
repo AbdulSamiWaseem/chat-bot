@@ -18,6 +18,7 @@ model User {
   sessions      Session[]
   accounts      Account[]
   chats         Chat[]
+  appointments  Appointment[]
 
   @@map("user")
 }
@@ -35,6 +36,18 @@ model Chat {
 }
 
 
+model Appointment {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  purpose   String
+  startTime DateTime
+  endTime   DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("appointment")
+}
 
 model Session {
   id        String   @id
