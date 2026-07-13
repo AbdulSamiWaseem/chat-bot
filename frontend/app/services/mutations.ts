@@ -10,9 +10,15 @@ export interface ChatMessage {
 
 export const useChatMutation = () => {
   return useMutation({
-    mutationFn: async ({ payload, onChunk }: { payload: ChatMessage[]; onChunk: any }) => {
-      const stream = await postApi("chat",
-        { messages: payload },
+    mutationFn: async ({ payload, chatId, userId, onChunk, onComplete }: { payload: ChatMessage[]; chatId?: any; userId?: any; onChunk: any; onComplete?: any }) => {
+      const body: any = { messages: payload };
+      if (chatId) {
+        body.chatId = chatId;
+      }
+      if (userId) {
+        body.userId = userId;
+      }
+      const stream = await postApi("chat", body,
         {
           adapter: 'fetch',
           responseType: 'stream'
@@ -30,12 +36,16 @@ export const useChatMutation = () => {
         lineBuffer = lines.pop() || "";
 
         let buffer = "";
+        let chatId = null;
         lines.forEach((line) => {
           if (line.trim() === "") return;
           try {
             const parsed = JSON.parse(line);
             if (parsed.text) {
               buffer += parsed.text;
+            }
+            if (parsed.done && parsed.chatId) {
+              chatId = parsed.chatId;
             }
           } catch (e) {
             console.error("Error parsing line:", line);
@@ -44,6 +54,9 @@ export const useChatMutation = () => {
 
         if (buffer) {
           onChunk(buffer);
+        }
+        if (chatId) {
+          onComplete(chatId);
         }
       }
     },
