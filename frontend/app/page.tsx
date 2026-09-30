@@ -30,9 +30,12 @@ export default function ChatBotUI() {
   const handleSend = () => {
     if (!inputValue.trim() || chatMutation.isPending) return;
 
-    const newMessages = [...savedMessages, { content: inputValue, role: "user" }];
+    const newMessages = [
+      ...savedMessages,
+      { content: inputValue, role: "user" },
+    ];
     setMessages([...newMessages, { content: "", role: "assistant" }]);
-    setInputValue("")
+    setInputValue("");
     chatMutation.mutate({
       payload: newMessages,
       chatId,
@@ -41,7 +44,10 @@ export default function ChatBotUI() {
         setMessages((prev) => {
           const updated = [...prev];
           const lastIndex = updated.length - 1;
-          updated[lastIndex] = { ...updated[lastIndex], content: updated[lastIndex].content + text };
+          updated[lastIndex] = {
+            ...updated[lastIndex],
+            content: updated[lastIndex].content + text,
+          };
           return updated;
         });
       },
@@ -52,14 +58,22 @@ export default function ChatBotUI() {
           router.push(`/?chatId=${chat_id}`);
           queryClient.invalidateQueries({ queryKey: ["chatHistory"] });
         }
-      }
+      },
     });
   };
 
   return (
     <Box sx={{ display: "flex", height: "100vh", overflow: "hidden" }}>
       <Sidebar />
-      <Box sx={{ display: "flex", flexDirection: "column", width: "100%", height: "100vh", justifyContent: "space-between" }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          width: "100%",
+          height: "100vh",
+          justifyContent: "space-between",
+        }}
+      >
         <Chat messages={displayMessages} />
         <ChatInput
           inputValue={inputValue}
@@ -67,6 +81,7 @@ export default function ChatBotUI() {
           onSend={handleSend}
           isPending={chatMutation.isPending}
         />
+        <h1>Hello muntaha</h1>
       </Box>
     </Box>
   );
