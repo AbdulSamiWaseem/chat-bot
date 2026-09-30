@@ -81,7 +81,8 @@ export default function ChatBotUI() {
           onSend={handleSend}
           isPending={chatMutation.isPending}
         />
-        <h1>Hello muntaha</h1>
+        <h1>Hello </h1>
+        <h1>Hello </h1>
       </Box>
     </Box>
   );
